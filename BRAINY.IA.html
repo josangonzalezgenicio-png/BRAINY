@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainy AI | Intelligence Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030305;
+            --card: rgba(15, 15, 20, 0.7);
+            --primary: #a855f7;
+            --secondary: #22d3ee;
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+        .bg-glow {
+            position: fixed; width: 100vw; height: 100vh; z-index: -1;
+            background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, transparent 50%);
+        }
+
+        .app { width: 100%; max-width: 500px; margin: 0 auto; padding: 20px 20px 120px; }
+
+        .screen { display: none; animation: fadeIn 0.4s ease-out; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .glass-card {
+            background: var(--card); backdrop-filter: blur(25px);
+            border: 1px solid var(--border); border-radius: 28px;
+            padding: 25px; margin-bottom: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+
+        h1 { font-size: 38px; font-weight: 800; background: linear-gradient(to right, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+
+        textarea, select, input {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+            border-radius: 18px; padding: 18px; color: white; margin-top: 10px; font-size: 15px; outline: none;
+        }
+
+        .btn-main {
+            width: 100%; padding: 20px; border-radius: 20px; border: none;
+            background: white; color: black; font-weight: 800; font-size: 15px;
+            cursor: pointer; margin-top: 20px; transition: 0.3s;
+        }
+        .btn-main:hover { background: var(--secondary); transform: scale(1.02); }
+
+        .scroll-area { max-height: 400px; overflow-y: auto; padding-right: 10px; line-height: 1.7; white-space: pre-wrap; }
+        .scroll-area::-webkit-scrollbar { width: 4px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+        .option-card {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            padding: 18px; border-radius: 15px; margin-top: 12px; cursor: pointer; transition: 0.2s;
+        }
+        .option-card:hover { border-color: var(--secondary); background: rgba(34, 211, 238, 0.05); }
+
+        nav {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px; background: rgba(10,10,15,0.8);
+            backdrop-filter: blur(20px); border: 1px solid var(--border);
+            border-radius: 35px; display: flex; justify-content: space-around; padding: 15px; z-index: 100;
+        }
+        nav button { background: none; border: none; color: #444; font-weight: 700; cursor: pointer; font-size: 12px; transition: 0.3s; }
+        nav button.active-nav { color: var(--secondary); transform: translateY(-3px); }
+
+        .link-pill {
+            display: inline-block; padding: 10px 20px; background: var(--border);
+            border-radius: 50px; text-decoration: none; color: white; font-size: 13px; margin: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<div class="app">
+    <div id="scr-login" class="screen active">
+        <div style="padding: 100px 0 40px; text-align: center;">
+            <h1>Brainy AI.</h1>
+            <p style="color: #666;">Sistema de Análisis Inteligente</p>
+        </div>
+        <div class="glass-card">
+            <input type="text" id="userName" placeholder="Identificación...">
+            <button class="btn-main" onclick="iniciar()">Sincronizar</button>
+        </div>
+    </div>
+
+    <div id="scr-studio" class="screen">
+        <h2>Studio</h2>
+        <div class="glass-card">
+            <div style="border: 2px dashed var(--border); padding: 20px; text-align: center; border-radius: 20px; cursor: pointer;" onclick="document.getElementById('f').click()">
+                <p id="f-name">📂 Seleccionar Documento</p>
+                <input type="file" id="f" hidden onchange="document.getElementById('f-name').innerText='Cargado: '+this.files[0].name">
+            </div>
+            <select id="lvl">
+                <option value="detallado">Análisis Exhaustivo</option>
+                <option value="flash">Resumen Ejecutivo</option>
+            </select>
+            <textarea id="txtIn" placeholder="Pega tus apuntes aquí..."></textarea>
+            <button class="btn-main" onclick="procesarTodo()">✨ Generar Análisis</button>
+        </div>
+
+        <div id="res-box" class="glass-card" style="display:none">
+            <h3 style="color: var(--secondary); margin-bottom:15px">Resultado</h3>
+            <div id="res-txt" class="scroll-area"></div>
+            <div id="res-links" style="margin-top:20px; border-top: 1px solid var(--border); padding-top:15px"></div>
+        </div>
+    </div>
+
+    <div id="scr-quiz" class="screen">
+        <h2>Quizz</h2>
+        <div id="quiz-settings" class="glass-card">
+            <p style="margin-bottom:10px">Parámetros del Examen:</p>
+            <select id="qNum">
+                <option value="10">10 Preguntas</option>
+                <option value="20">20 Preguntas</option>
+                <option value="30">30 Preguntas</option>
+                <option value="40">40 Preguntas</option>
+                <option value="50">50 Preguntas</option>
+            </select>
+            <button class="btn-main" onclick="empezarQuiz()">Iniciar</button>
+        </div>
+        <div id="quiz-play" style="display:none"></div>
+    </div>
+
+    <div id="scr-perfil" class="screen">
+        <h2>Perfil</h2>
+        <div class="glass-card">
+            <p id="u-info" style="font-size: 20px; font-weight: 800;"></p>
+            <p style="color: var(--primary); margin-top: 5px;">Rango: Analista</p>
+        </div>
+        <p style="text-align: center; color: #222; font-size: 11px; margin-top: 100px;">
+            BRAINY AI | JOSÉ ANTONIO GONZÁLEZ GENICIO
+        </p>
+    </div>
+
+    <nav id="nav" style="display:none">
+        <button onclick="nav('studio', this)" class="active-nav">STUDIO</button>
+        <button onclick="nav('quiz', this)">QUIZZ</button>
+        <button onclick="nav('perfil', this)">PERFIL</button>
+    </nav>
+</div>
+
+<script>
+    let rawData = "";
+    let quizData = [];
+    let currentQ = 0;
+    let score = 0;
+
+    function iniciar() {
+        const u = document.getElementById('userName').value;
+        if(!u) return;
+        document.getElementById('u-info').innerText = u;
+        nav('studio', document.querySelector('nav button'));
+        document.getElementById('nav').style.display = 'flex';
+        document.getElementById('scr-login').classList.remove('active');
+    }
+
+    function nav(id, btn) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('scr-' + id).classList.add('active');
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
+        if(btn) btn.classList.add('active-nav');
+    }
+
+    function procesarTodo() {
+        const t = document.getElementById('txtIn').value;
+        const modo = document.getElementById('lvl').value;
+        if(t.length < 50) return alert("Pega un texto más largo para analizarlo.");
+        
+        rawData = t;
+        document.getElementById('res-box').style.display = 'block';
+        
+        const frases = t.split(/[.!?]/).filter(f => f.trim().length > 15);
+        let output = "";
+        
+        if(modo === "flash") {
+            output = "### PUNTOS CLAVE\n\n" + frases.slice(0, 5).map(f => "• " + f.trim()).join("\n\n");
+        } else {
+            output = "### ANÁLISIS POR BLOQUES\n\n" + frases.map((f, i) => `**SECCIÓN ${i+1}:** ${f.trim()}.`).join("\n\n");
+        }
+        
+        document.getElementById('res-txt').innerText = output;
+
+        const q = encodeURIComponent(t.substring(0, 30));
+        document.getElementById('res-links').innerHTML = `
+            <a href="https://www.youtube.com/results?search_query=${q}" target="_blank" class="link-pill">🎥 Vídeos</a>
+            <a href="https://www.google.com/search?q=${q}" target="_blank" class="link-pill">📚 Fuentes</a>
+        `;
+    }
+
+    function empezarQuiz() {
+        if(!rawData) return alert("Primero procesa un texto en Studio.");
+        const n = parseInt(document.getElementById('qNum').value);
+        
+        const palabras = rawData.replace(/[,.]/g, "").split(/\s+/).filter(p => p.length > 7);
+        if(palabras.length < 5) return alert("El texto es muy corto para generar un quiz.");
+
+        quizData = [];
+        for(let i=0; i<n; i++) {
+            let pCorrecta = palabras[Math.floor(Math.random() * palabras.length)];
+            quizData.push({
+                pregunta: `¿Cuál de estos conceptos es fundamental según el texto analizado?`,
+                opciones: [pCorrecta, "Concepto genérico", "Teoría externa", "Dato omitido"],
+                correcta: pCorrecta
+            });
+        }
+
+        currentQ = 0;
+        score = 0;
+        document.getElementById('quiz-settings').style.display = 'none';
+        document.getElementById('quiz-play').style.display = 'block';
+        mostrarPregunta();
+    }
+
+    function mostrarPregunta() {
+        const q = quizData[currentQ];
+        const box = document.getElementById('quiz-play');
+        box.innerHTML = `
+            <div class="glass-card">
+                <span style="color:var(--secondary)">Pregunta ${currentQ+1} de ${quizData.length}</span>
+                <p style="margin: 20px 0; font-size: 18px; font-weight: 600;">${q.pregunta}</p>
+                <div id="opts"></div>
+            </div>
+        `;
+        
+        q.opciones.sort(() => Math.random() - 0.5).forEach(o => {
+            const d = document.createElement('div');
+            d.className = 'option-card';
+            d.innerText = o;
+            d.onclick = () => validar(o === q.correcta);
+            document.getElementById('opts').appendChild(d);
+        });
+    }
+
+    function validar(win) {
+        if(win) score++;
+        currentQ++;
+        if(currentQ < quizData.length) {
+            mostrarPregunta();
+        } else {
+            finalizarQuiz();
+        }
+    }
+
+    function finalizarQuiz() {
+        const box = document.getElementById('quiz-play');
+        box.innerHTML = `
+            <div class="glass-card" style="text-align:center">
+                <h2>Examen Finalizado</h2>
+                <div style="font-size: 40px; margin: 20px;">${score >= quizData.length/2 ? '✅' : '❌'}</div>
+                <p style="font-size: 24px; font-weight: 800;">Nota: ${score} / ${quizData.length}</p>
+                <button class="btn-main" onclick="volverAlStudio()">Volver al Studio</button>
+                <p style="margin-top:15px; font-size:12px; color:#555" onclick="resetQuiz()">Repetir examen</p>
+            </div>
+        `;
+    }
+
+    function volverAlStudio() {
+        // Ocultamos la zona de juego y mostramos los ajustes del quiz por si quiere volver luego
+        document.getElementById('quiz-play').style.display = 'none';
+        document.getElementById('quiz-settings').style.display = 'block';
+        // Navegamos al Studio
+        nav('studio', document.querySelectorAll('nav button')[0]);
+    }
+
+    function resetQuiz() {
+        document.getElementById('quiz-play').style.display = 'none';
+        document.getElementById('quiz-settings').style.display = 'block';
+    }
+</script>
+</body>
+</html>
